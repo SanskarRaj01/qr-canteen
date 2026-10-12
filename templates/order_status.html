@@ -1,0 +1,293 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Receipt - BBSBEC Canteen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .order-card {
+      background: var(--card);
+      width: 100%;
+      max-width: 440px;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .card-head {
+      background: #0f172a;
+      color: #fff;
+      padding: 24px 20px;
+      text-align: center;
+    }
+    .card-head h1 { font-size: 18px; font-weight: 800; letter-spacing: 0.5px; }
+    .card-head p { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+    .status-section {
+      padding: 24px 20px 16px;
+      text-align: center;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .status-pending { background: #fef3c7; color: #b45309; }
+    .status-confirmed { background: #dcfce7; color: #15803d; }
+    .token-box {
+      background: #f1f5f9;
+      border-radius: 16px;
+      padding: 16px;
+      margin: 16px 20px;
+      text-align: center;
+      border: 1px dashed #cbd5e1;
+    }
+    .token-val { font-size: 28px; font-weight: 800; color: #0f172a; letter-spacing: 2px; }
+    .items-section { padding: 0 20px 20px; }
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px dashed #e2e8f0;
+      font-size: 14px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px 0 0;
+      font-size: 17px;
+      font-weight: 800;
+    }
+    .actions-section {
+      padding: 0 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .btn-counter {
+      width: 100%;
+      background: linear-gradient(135deg, #15803d, #16a34a);
+      color: #fff;
+      border: none;
+      padding: 15px;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25);
+    }
+    .btn-online {
+      width: 100%;
+      background: #0f172a;
+      color: #fff;
+      border: none;
+      padding: 15px;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
+    }
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      background: #4ade80;
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.8);
+      animation: live-pulse 1.5s infinite;
+    }
+    @keyframes live-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.8); }
+      70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+    }
+    .or-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+    }
+    .or-divider::before, .or-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px dashed #cbd5e1;
+    }
+    .or-divider span { padding: 0 12px; }
+  </style>
+</head>
+<body>
+
+  <div class="order-card">
+    <div class="card-head">
+      <h1>BBSBEC CANTEEN</h1>
+      <p>Digital Order Receipt</p>
+    </div>
+
+    <div class="status-section">
+      {% if order.status == 'PENDING_PAYMENT' %}
+        <div class="status-badge status-pending">
+          <i class="fa-solid fa-clock"></i> Payment Pending
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Choose a payment option below to generate your token.</p>
+      {% else %}
+        <div class="status-badge status-confirmed">
+          <i class="fa-solid fa-check-circle"></i> Order Confirmed
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Preparing your food in kitchen!</p>
+      {% endif %}
+    </div>
+
+    {% if order.token and order.status != 'PENDING_PAYMENT' %}
+      <div class="token-box">
+        <span style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Kitchen Token ID</span>
+        <div class="token-val">#{{ order.token }}</div>
+      </div>
+    {% endif %}
+
+    <div class="items-section">
+      <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase;">Order Items</div>
+      {% for item in order_items %}
+        <div class="item-row">
+          <span>{{ item.item_name }} &times; {{ item.quantity }}</span>
+          <span style="font-weight: 600;">&#8377;{{ item.subtotal }}</span>
+        </div>
+      {% endfor %}
+      <div class="total-row">
+        <span>Grand Total</span>
+        <span style="color: #16a34a;">&#8377;{{ order.total_amount }}</span>
+      </div>
+    </div>
+
+    {% if order.status == 'PENDING_PAYMENT' %}
+      <div class="actions-section">
+        <!-- Live Counter Payment Button -->
+        <button id="counter-pay-btn" type="button" class="btn-counter">
+          <span class="pulse-dot"></span>
+          <i class="fa-solid fa-money-bill-wave"></i>
+          <span>Confirm & Pay at Counter</span>
+        </button>
+
+        <!-- Visual Gap / Divider -->
+        <div class="or-divider">
+          <span>OR PAY ONLINE</span>
+        </div>
+
+        <!-- Online Payment Button -->
+        <button id="pay-btn" type="button" class="btn-online">
+          <i class="fa-solid fa-shield-halved" style="color: #38bdf8;"></i>
+          <span>Pay &#8377;{{ order.total_amount }} Online</span>
+        </button>
+      </div>
+
+      <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+      <script>
+        document.getElementById('counter-pay-btn').onclick = async function() {
+          this.disabled = true;
+          this.innerHTML = '<span>Confirming order...</span>';
+          const res = await fetch('/verify_payment', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              order_id: {{ order.id }},
+              razorpay_payment_id: 'COUNTER_CASH'
+            })
+          });
+          if (res.ok) { window.location.reload(); }
+        };
+
+        document.getElementById('pay-btn').onclick = function() {
+          var rzKey = {{ razorpay_key_id | tojson }};
+          var orderTotal = {{ (order.total_amount * 100) | round | int }};
+          var orderId = {{ order.id | tojson }};
+
+          if (!rzKey || rzKey === "" || rzKey.includes("placeholder")) {
+            if (confirm("Confirm demo payment of ₹" + (orderTotal/100) + "?")) {
+              completePayment("DEMO_PAID");
+            }
+            return;
+          }
+
+          var options = {
+            key: rzKey,
+            amount: orderTotal,
+            currency: "INR",
+            name: "BBSBEC Canteen",
+            description: "Order #" + orderId,
+            order_id: {{ razorpay_order_id | tojson }},
+            handler: function(response) {
+              completePayment(response.razorpay_payment_id || "PAID_ONLINE");
+            },
+            theme: { color: "#2563eb" }
+          };
+
+          try {
+            var rzp = new Razorpay(options);
+            rzp.on('payment.failed', function() {
+              if (confirm("Payment Failed. Confirm with Counter Payment?")) {
+                completePayment("COUNTER_CASH");
+              }
+            });
+            rzp.open();
+          } catch(e) {
+            completePayment("COUNTER_CASH");
+          }
+
+          function completePayment(pId) {
+            fetch('/verify_payment', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({
+                order_id: orderId,
+                razorpay_payment_id: pId
+              })
+            }).then(() => window.location.reload());
+          }
+        };
+      </script>
+    {% endif %}
+
+    <div style="text-align: center; padding-bottom: 20px;">
+      <a href="/table/{{ order.table_code }}" style="color: var(--text-muted); font-size: 13px; text-decoration: none; font-weight: 600;">&larr; Back to Menu</a>
+    </div>
+  </div>
+
+</body>
+</html>

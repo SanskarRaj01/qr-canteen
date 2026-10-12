@@ -1,0 +1,929 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .college-real-logo {
+      height: 50px;
+      width: auto;
+      object-fit: contain;
+    }
+    .footer-real-logo {
+      height: 44px;
+      width: auto;
+      background: #ffffff;
+      padding: 4px;
+      border-radius: 6px;
+    }
+    /* Nutrition Modal */
+    .nutrition-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 16px;
+    }
+    .nutrition-modal-card {
+      background: var(--card-bg, #ffffff);
+      border: 1px solid var(--card-border, #e2e8f0);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 420px;
+      padding: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+    .modal-close-btn {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      background: none;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      color: var(--text-muted);
+      line-height: 1;
+    }
+    .modal-close-btn:hover { color: #e74c3c; }
+    .modal-head {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .modal-img-wrap {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid var(--primary-color, #27ae60);
+      flex-shrink: 0;
+    }
+    .modal-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .m-diet-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #27ae60;
+      background: rgba(39, 174, 96, 0.12);
+      padding: 3px 8px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+    #mTitle { font-size: 18px; font-weight: 800; line-height: 1.2; }
+    .m-cat { font-size: 12px; color: var(--text-muted); }
+    .m-price { font-size: 16px; font-weight: 800; color: var(--primary-color, #27ae60); margin-top: 2px; }
+    .m-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; }
+    .nutri-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nutri-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .nutri-pill {
+      background: rgba(248, 250, 252, 0.9);
+      border-radius: 12px;
+      padding: 8px 4px;
+      text-align: center;
+      border: 1px solid var(--card-border, #e2e8f0);
+    }
+    body.dark-mode .nutri-pill { background: rgba(30, 41, 59, 0.7); }
+    .nutri-pill .val { display: block; font-size: 13px; font-weight: 800; }
+    .nutri-pill .lbl { font-size: 9px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); }
+    .nutri-pill.cal .val { color: #e67e22; }
+    .nutri-pill.pro .val { color: #27ae60; }
+    .nutri-pill.carb .val { color: #3498db; }
+    .nutri-pill.fat .val { color: #e74c3c; }
+    .health-highlight, .spec-box {
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(39, 174, 96, 0.08);
+      color: var(--primary-color, #27ae60);
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(39, 174, 96, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .spec-box { background: rgba(52, 152, 219, 0.08); color: #2980b9; border-color: rgba(52, 152, 219, 0.2); }
+    .food-card-img, .food-title { cursor: pointer; }
+  </style>
+</head>
+<body>
+{% set emojis = {'Samosa':'&#x1F95F;','Veg Sandwich':'&#x1F96A;','Veg Noodles':'&#x1F35C;','Chole Bhature':'&#x1F35B;','Cold Coffee':'&#x1F9CB;','Masala Tea':'&#x2615;','Gulab Jamun':'&#x1F36E;','Coca-Cola':'&#x1F964;','Pepsi':'&#x1F964;','Sprite':'&#x1F964;','Maaza':'&#x1F96D;','Lemon Soda':'&#x1F34B;','Water Bottle':'&#x1F4A7;','Vanilla Cup':'&#x1F368;','Chocolate Cup':'&#x1F368;','Butterscotch Cone':'&#x1F366;','Kulfi':'&#x1F368;','Choco Bar':'&#x1F36B;'} %}
+{% set cat_emojis = {'Snacks':'&#x1F37F;','Main Course':'&#x1F35B;','Beverages':'&#x1F964;','Desserts':'&#x1F370;','Cold Drinks':'&#x1F964;','Ice Creams':'&#x1F366;','Stationery & Services':'&#x1F4DA;'} %}
+
+  <!-- Header -->
+  <header>
+    <div class="nav-container">
+      <a href="#home" class="logo-container">
+        <img src="/static/bbsbec_logo.png" alt="BBSBEC Logo" class="college-real-logo">
+        <div style="display:flex; flex-direction:column; line-height:1.15;">
+          <span class="logo-text" style="font-weight:800; letter-spacing:1px;">BBSBEC CANTEEN</span>
+          <span style="font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:0.5px;">Fatehgarh Sahib</span>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#menu">Menu</a></li>
+        <li><a href="#location">Location</a></li>
+      </ul>
+      <div style="display: flex; align-items: center; gap: 15px;">
+        
+        <button class="theme-toggle-btn" id="themeToggle" title="Toggle Dark/Light Mode">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" id="home">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1>BBSBEC CANTEEN</h1>
+      <p>Baba Banda Singh Bahadur Engineering College &bull; Eat Well For a Healthy Life</p>
+      <a href="#menu" class="btn-menu">VIEW MENU</a>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="section-about" id="about">
+    <div class="about-grid">
+      <div>
+        <p class="about-subheading">About BBSBEC Canteen</p>
+        <h2 class="about-title">Providing hygienic & nutritious food for BBSBEC students and staff.</h2>
+        <p class="about-text">
+          Located inside Baba Banda Singh Bahadur Engineering College (Fatehgarh Sahib), our central canteen provides high hygiene standards, affordable pricing, and fast digital ordering right at your table.
+        </p>
+      </div>
+      <div class="about-image">
+        <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80" alt="BBSBEC Canteen Counter" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Carousel -->
+  <section class="services-carousel-sec" id="services">
+    <h2 class="section-title">CAMPUS SERVICES</h2>
+    <div class="carousel-container">
+      <button class="carousel-btn prev" id="prevSlide"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="carousel-track" id="carouselTrack">
+        <div class="carousel-slide"><img src="https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=700&q=80" alt="Beverages & Cold Drinks" /></div>
+        <div class="carousel-slide"><img src="https://images.unsplash.com/photo-1501443762994-82bd5dace89a?auto=format&fit=crop&w=700&q=80" alt="Ice Cream & Cones" /></div>
+        <div class="carousel-slide"><img src="https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=700&q=80" alt="Stationery & Project Files" /></div>
+        <div class="carousel-slide"><img src="https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?auto=format&fit=crop&w=700&q=80" alt="Assignment Printing & Xerox" /></div>
+      </div>
+      <button class="carousel-btn next" id="nextSlide"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+  </section>
+
+  <!-- Clean Order Form -->
+  <form method="POST" action="{{ url_for('place_order') }}" id="orderForm">
+    <input type="hidden" name="table_code" value="{{ table.table_code }}">
+
+    <section class="menu-container" id="menu">
+      {% for category in categories %}
+      <div class="menu-category">
+        <h3 class="category-heading">{{ category.name }}</h3>
+        <div class="circular-grid">
+          {% for item in items %}
+          {% if item.category_name == category.name %}
+          <div class="food-card card{% if item.stock == 0 %} unavailable{% endif %}" data-price="{{ item.price }}">
+            <div class="food-card-img" title="Click for Nutrition / Details">
+              <span class="emoji-thumb">{{ emojis.get(item.name, cat_emojis.get(category.name, '&#x1F374;')) | safe }}</span>
+              <img src="{{ item.image if (item.image and item.image.startswith('http')) else url_for('static', filename=(item.image if item.image else ('images/item_' ~ item.id ~ '.jpg'))) }}" alt="{{ item.name }}" loading="lazy" onerror="this.style.display='none'">
+            </div>
+            <h4 class="food-title" title="Click for Nutrition / Details">{{ item.name }}</h4>
+            <div class="food-price">&#8377;{{ '%g'|format(item.price) }}</div>
+            {% if item.description %}<p class="food-desc">{{ item.description }}</p>{% endif %}
+
+            {% if item.stock == 0 %}
+              <span class="out-badge">Out of Stock</span>
+            {% else %}
+              <div class="stepper">
+                <button type="button" data-d="-1" aria-label="Decrease">&minus;</button>
+                <input type="number" id="qty_{{ item.id }}" name="qty_{{ item.id }}" min="0" max="{{ item.stock }}" value="0" readonly>
+                <button type="button" data-d="1" aria-label="Increase">+</button>
+              </div>
+            {% endif %}
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </section>
+
+    <!-- Floating Sticky Cartbar -->
+    <div class="cartbar">
+      <div>
+        <small id="count">0 items</small>
+        <strong>&#8377;<span id="total">0</span></strong>
+      </div>
+      <button type="submit" id="placeBtn" disabled>Place Order &amp; Pay</button>
+    </div>
+  </form>
+
+  <!-- Location -->
+  <section class="location-section" id="location">
+    <div class="location-header">
+      <h2>Campus Location</h2>
+      <p>Baba Banda Singh Bahadur Engineering College (BBSBEC), Student Activity Center / Central Canteen, Chandigarh Road, Fatehgarh Sahib, Punjab-140407</p>
+    </div>
+    <div class="location-grid">
+      <div class="map-box">
+        <iframe src="https://maps.google.com/maps?q=Baba%20Banda%20Singh%20Bahadur%20Engineering%20College%20Fatehgarh%20Sahib&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
+      </div>
+      <div>
+        <div class="contact-form">
+          <input type="text" class="form-control" placeholder="Your Name" />
+          <input type="tel" class="form-control" placeholder="Mobile / WhatsApp Number" />
+          <input type="email" class="form-control" placeholder="College Email (@bbsbec.ac.in)" />
+          <textarea class="form-control" placeholder="Special food request, bulk order, or question..." rows="4"></textarea>
+          <button type="button" class="btn-submit" onclick="alert('Query sent to BBSBEC Canteen desk!')">Submit Query</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-col">
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#about">About BBSBEC</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#menu">Digital Menu</a></li>
+          <li><a href="#location">Campus Location</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Contact & Campus Address</h3>
+        <p><strong>Baba Banda Singh Bahadur Engg. College</strong></p>
+        <p>Chandigarh Road, Fatehgarh Sahib, Punjab - 140407</p>
+      </div>
+      <div class="footer-col">
+        <h3>BBSBEC Canteen</h3>
+        <div class="footer-logo" style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+          <img src="/static/bbsbec_logo.png" alt="BBSBEC Logo" class="footer-real-logo">
+          <span style="font-weight: 700; color: #fff;">BBSBEC CANTEEN</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; BBSBEC Canteen &bull; All rights reserved
+    </div>
+  </footer>
+
+  <!-- Isolated Nutrition Modal -->
+  <div id="nutritionModal" class="nutrition-modal-overlay">
+    <div class="nutrition-modal-card">
+      <button type="button" class="modal-close-btn" id="closeNutritionModal">&times;</button>
+      <div class="modal-head">
+        <div class="modal-img-wrap">
+          <img id="mImg" src="" alt="Food Preview">
+        </div>
+        <div>
+          <span id="mDietTag" class="m-diet-tag">Pure Veg</span>
+          <h3 id="mTitle">Food Name</h3>
+          <p id="mCategory" class="m-cat">Category</p>
+          <div id="mPrice" class="m-price">&#8377;0</div>
+        </div>
+      </div>
+      
+      <p id="mDesc" class="m-desc">Description</p>
+      
+      <div id="nutritionSection">
+        <h4 class="nutri-title"><i class="fa-solid fa-fire-flame-curved" style="color:#e67e22;"></i> Nutritional Breakdown</h4>
+        <div class="nutri-grid">
+          <div class="nutri-pill cal"><span class="val" id="mCal">--</span><span class="lbl">Calories</span></div>
+          <div class="nutri-pill pro"><span class="val" id="mPro">--</span><span class="lbl">Protein</span></div>
+          <div class="nutri-pill carb"><span class="val" id="mCarb">--</span><span class="lbl">Carbs</span></div>
+          <div class="nutri-pill fat"><span class="val" id="mFat">--</span><span class="lbl">Fats</span></div>
+        </div>
+        <div class="health-highlight" id="mHealthTip"><i class="fa-solid fa-heart-pulse"></i> <span>Campus Fuel</span></div>
+      </div>
+
+      <div id="specSection" style="display:none;">
+        <h4 class="nutri-title"><i class="fa-solid fa-circle-info" style="color:#3498db;"></i> Academic Specifications</h4>
+        <div class="spec-box" id="mSpecDetail">A4 Standard &bull; High Resolution</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Dark mode
+    const themeToggleBtn = document.getElementById('themeToggle');
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const icon = themeToggleBtn.querySelector('i');
+        if (document.body.classList.contains('dark-mode')) {
+          icon.classList.remove('fa-moon');
+          icon.classList.add('fa-sun');
+        } else {
+          icon.classList.remove('fa-sun');
+          icon.classList.add('fa-moon');
+        }
+      });
+    }
+
+    // Carousel
+    const track = document.getElementById('carouselTrack');
+    const slides = document.querySelectorAll('.carousel-slide');
+    const prevBtn = document.getElementById('prevSlide');
+    const nextBtn = document.getElementById('nextSlide');
+    let currentIndex = 0;
+
+    function updateSlider(idx) {
+      if (!track || slides.length === 0) return;
+      if (idx < 0) idx = slides.length - 1;
+      if (idx >= slides.length) idx = 0;
+      currentIndex = idx;
+      track.style.transform = `translateX(-${currentIndex * 100}%)`;
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', () => updateSlider(currentIndex - 1));
+    if (nextBtn) nextBtn.addEventListener('click', () => updateSlider(currentIndex + 1));
+
+    // Cart Calculation & Stepper
+    (function () {
+      const t = document.getElementById('total'), c = document.getElementById('count'), btn = document.getElementById('placeBtn');
+      function update() {
+        let total = 0, count = 0;
+        document.querySelectorAll('.card').forEach(function (card) {
+          const i = card.querySelector('input[type="number"]');
+          if (!i) return;
+          const q = parseInt(i.value) || 0;
+          count += q;
+          total += q * parseFloat(card.dataset.price);
+        });
+        if (t) t.textContent = total;
+        if (c) c.textContent = count + (count === 1 ? ' item' : ' items');
+        if (btn) btn.disabled = count === 0;
+      }
+
+      document.querySelectorAll('.stepper button').forEach(function (b) {
+        b.addEventListener('click', function (e) {
+          e.stopPropagation();
+          const i = b.parentNode.querySelector('input');
+          const v = (parseInt(i.value) || 0) + parseInt(b.dataset.d);
+          i.value = Math.max(parseInt(i.min), Math.min(parseInt(i.max), v));
+          update();
+        });
+      });
+
+      window.addEventListener('pageshow', update);
+      update();
+    })();
+
+    // Nutrition Modal
+    const nutritionDB = {
+      'Samosa': { cal: '260 kcal', pro: '4.5g', carb: '32g', fat: '14g', tip: 'High Energy Carb Snack' },
+      'Veg Sandwich': { cal: '210 kcal', pro: '6.5g', carb: '28g', fat: '7g', tip: 'Fiber-Rich Fresh Veggies' },
+      'Veg Noodles': { cal: '320 kcal', pro: '7.2g', carb: '48g', fat: '11g', tip: 'Wok Tossed Instant Fuel' },
+      'Chole Bhature': { cal: '480 kcal', pro: '12.5g', carb: '58g', fat: '22g', tip: 'Hearty Punjabi Meal' },
+      'Cold Coffee': { cal: '180 kcal', pro: '4.8g', carb: '24g', fat: '6.5g', tip: 'Caffeine Boost & Chilled Blend' },
+      'Masala Tea': { cal: '85 kcal', pro: '2.5g', carb: '12g', fat: '2.8g', tip: 'Ayurvedic Spices & Antioxidants' },
+      'Gulab Jamun': { cal: '175 kcal', pro: '2.1g', carb: '26g', fat: '7.2g', tip: 'Traditional Milk Khoya Sweet' },
+      'Coca-Cola': { cal: '140 kcal', pro: '0g', carb: '35g', fat: '0g', tip: 'Chilled Refreshment Drink' },
+      'Pepsi': { cal: '150 kcal', pro: '0g', carb: '38g', fat: '0g', tip: 'Carbonated Cold Beverage' },
+      'Sprite': { cal: '140 kcal', pro: '0g', carb: '34g', fat: '0g', tip: 'Lemon-Lime Sparkling Soda' },
+      'Maaza': { cal: '130 kcal', pro: '0.2g', carb: '32g', fat: '0g', tip: 'Alphonso Mango Pulp Drink' },
+      'Lemon Soda': { cal: '75 kcal', pro: '0.1g', carb: '18g', fat: '0g', tip: 'Hydrating Vitamin C Cooler' },
+      'Water Bottle': { cal: '0 kcal', pro: '0g', carb: '0g', fat: '0g', tip: '100% Pure Hydration' },
+      'Vanilla Cup': { cal: '140 kcal', pro: '3.0g', carb: '17g', fat: '7.5g', tip: 'Creamy Dairy Dessert' },
+      'Chocolate Cup': { cal: '160 kcal', pro: '3.2g', carb: '19g', fat: '8.5g', tip: 'Rich Cocoa Dairy Treat' },
+      'Butterscotch Cone': { cal: '220 kcal', pro: '4.0g', carb: '29g', fat: '10g', tip: 'Crispy Waffle Cone & Caramel' },
+      'Kulfi': { cal: '190 kcal', pro: '5.2g', carb: '21g', fat: '9.8g', tip: 'Slow-Cooked Thick Milk Delight' },
+      'Choco Bar': { cal: '210 kcal', pro: '3.5g', carb: '22g', fat: '12.5g', tip: 'Chocolate Enrobed Ice Bar' },
+      'Paneer Patty': { cal: '280 kcal', pro: '9.0g', carb: '26g', fat: '15g', tip: 'Protein Flaky Puff' },
+      'French Fries': { cal: '265 kcal', pro: '3.2g', carb: '36g', fat: '12g', tip: 'Golden Salted Crisp Potatoes' },
+      'Veg Cheese Burger': { cal: '340 kcal', pro: '10.5g', carb: '38g', fat: '16g', tip: 'Dairy Calcium & Wholesome Veggies' },
+      'Paneer Roll': { cal: '360 kcal', pro: '14.0g', carb: '35g', fat: '18g', tip: 'High Protein Kathi Wrap' },
+      'Special Fried Rice': { cal: '330 kcal', pro: '6.8g', carb: '52g', fat: '10g', tip: 'Balanced Clean Carbs' },
+      'Chilli Paneer Gravy': { cal: '390 kcal', pro: '16.5g', carb: '24g', fat: '24g', tip: 'Indo-Chinese High Protein Dish' },
+      'Pav Bhaji': { cal: '380 kcal', pro: '8.5g', carb: '54g', fat: '14g', tip: 'Mashed Veggies with Vitamin A & C' },
+      'Cold Coffee with Ice Cream': { cal: '260 kcal', pro: '5.5g', carb: '36g', fat: '10g', tip: 'Dessert Shake & Espresso Shot' },
+      'Fresh Lemonade (Shikanji)': { cal: '60 kcal', pro: '0.2g', carb: '15g', fat: '0g', tip: 'Electrolyte Balance Cooler' },
+      'Chocolate Shake': { cal: '290 kcal', pro: '7.0g', carb: '42g', fat: '10.5g', tip: 'Rich Cocoa Milkshake' },
+      'Chocolate Cornetto': { cal: '250 kcal', pro: '4.2g', carb: '31g', fat: '12g', tip: 'Gelato Crown in Crispy Cone' },
+      'Matka Kulfi': { cal: '210 kcal', pro: '6.0g', carb: '24g', fat: '10.5g', tip: 'Earthen Pot Saffron Kulfi' }
+    };
+
+    const modal = document.getElementById('nutritionModal');
+    const closeBtn = document.getElementById('closeNutritionModal');
+    if (closeBtn) closeBtn.onclick = () => { modal.style.display = 'none'; };
+    if (modal) modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+    document.querySelectorAll('.food-card').forEach(card => {
+      const trigger = card.querySelector('.food-card-img');
+      const titleTrigger = card.querySelector('.food-title');
+      const openModal = () => {
+        const title = card.querySelector('.food-title').textContent.trim();
+        const price = card.querySelector('.food-price').textContent.trim();
+        const descEl = card.querySelector('.food-desc');
+        const desc = descEl ? descEl.textContent.trim() : 'Fresh & hygienic campus item.';
+        const imgEl = card.querySelector('.food-card-img img');
+        const img = imgEl ? imgEl.src : '';
+        const catHead = card.closest('.menu-category').querySelector('.category-heading').textContent.trim();
+
+        document.getElementById('mTitle').textContent = title;
+        document.getElementById('mPrice').textContent = price;
+        document.getElementById('mDesc').textContent = desc;
+        document.getElementById('mImg').src = img;
+        document.getElementById('mCategory').textContent = catHead;
+
+        const isStationery = catHead.toLowerCase().includes('stationery') || catHead.toLowerCase().includes('service');
+        const nutriSec = document.getElementById('nutritionSection');
+        const specSec = document.getElementById('specSection');
+
+        if (isStationery) {
+          nutriSec.style.display = 'none';
+          specSec.style.display = 'block';
+          document.getElementById('mDietTag').textContent = 'Campus Service';
+          document.getElementById('mDietTag').style.color = '#3498db';
+          document.getElementById('mDietTag').style.background = 'rgba(52, 152, 219, 0.12)';
+          document.getElementById('mSpecDetail').innerHTML = '<i class="fa-solid fa-file-shield"></i> ' + desc;
+        } else {
+          nutriSec.style.display = 'block';
+          specSec.style.display = 'none';
+          document.getElementById('mDietTag').textContent = 'Pure Veg';
+          document.getElementById('mDietTag').style.color = '#27ae60';
+          document.getElementById('mDietTag').style.background = 'rgba(39, 174, 96, 0.12)';
+
+          const info = nutritionDB[title] || { cal: '220 kcal', pro: '5.0g', carb: '30g', fat: '8.0g', tip: 'Fresh Campus Preparation' };
+          document.getElementById('mCal').textContent = info.cal;
+          document.getElementById('mPro').textContent = info.pro;
+          document.getElementById('mCarb').textContent = info.carb;
+          document.getElementById('mFat').textContent = info.fat;
+          document.getElementById('mHealthTip').innerHTML = '<i class="fa-solid fa-heart-pulse"></i> <span>' + info.tip + '</span>';
+        }
+
+        modal.style.display = 'flex';
+      };
+
+      if (trigger) trigger.addEventListener('click', openModal);
+      if (titleTrigger) titleTrigger.addEventListener('click', openModal);
+    });
+  
+    // Campus Canteen AI Assistant Handler
+    const aiLauncher = document.getElementById('aiLauncher');
+    const aiWindow = document.getElementById('aiWindow');
+    const aiCloseBtn = document.getElementById('aiCloseBtn');
+    const aiMinBtn = document.getElementById('aiMinBtn');
+    const aiVoiceActionBtn = document.getElementById('aiVoiceActionBtn');
+    const voiceBtnText = document.getElementById('voiceBtnText');
+    const aiWaveform = document.getElementById('aiWaveform');
+    const aiDialogBox = document.getElementById('aiDialogBox');
+    const aiInputPrompt = document.getElementById('aiInputPrompt');
+    const aiSendPrompt = document.getElementById('aiSendPrompt');
+    const aiStatusText = document.getElementById('aiStatusText');
+
+    if (aiLauncher) aiLauncher.onclick = () => { aiWindow.style.display = 'flex'; };
+    if (aiCloseBtn) aiCloseBtn.onclick = () => { aiWindow.style.display = 'none'; };
+    if (aiMinBtn) aiMinBtn.onclick = () => { aiWindow.style.display = 'none'; };
+
+    function appendMessage(sender, text) {
+      const bubble = document.createElement('div');
+      bubble.className = 'ai-bubble ' + sender;
+      bubble.textContent = text;
+      aiDialogBox.appendChild(bubble);
+      aiDialogBox.scrollTop = aiDialogBox.scrollHeight;
+    }
+
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'hi-IN';
+        utter.onstart = () => { aiWaveform.classList.add('active'); };
+        utter.onend = () => { aiWaveform.classList.remove('active'); };
+        window.speechSynthesis.speak(utter);
+      }
+    }
+
+    async function askAI(query) {
+      if (!query.trim()) return;
+      appendMessage('user', query);
+      aiStatusText.textContent = 'Thinking...';
+      aiWaveform.classList.add('active');
+
+      try {
+        const res = await fetch('/api/canteen-ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query })
+        });
+        const data = await res.json();
+        const reply = data.reply || 'Main samajh nahi paaya, kripya dobara kahein.';
+        appendMessage('ai', reply);
+        aiStatusText.textContent = 'Live AI avatar • Online';
+        speakText(reply);
+      } catch (err) {
+        appendMessage('ai', 'Error connecting to Canteen AI.');
+        aiWaveform.classList.remove('active');
+      }
+    }
+
+    if (aiSendPrompt) {
+      aiSendPrompt.onclick = () => {
+        const val = aiInputPrompt.value.trim();
+        if (val) {
+          askAI(val);
+          aiInputPrompt.value = '';
+        }
+      };
+    }
+    if (aiInputPrompt) {
+      aiInputPrompt.onkeypress = (e) => {
+        if (e.key === 'Enter') {
+          aiSendPrompt.click();
+        }
+      };
+    }
+
+    // Web Speech Recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isListening = false;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = 'hi-IN';
+      recognition.continuous = false;
+
+      recognition.onstart = () => {
+        isListening = true;
+        voiceBtnText.textContent = 'Listening... Speak now';
+        aiVoiceActionBtn.classList.add('listening');
+        aiWaveform.classList.add('active');
+      };
+
+      recognition.onresult = (e) => {
+        const spoken = e.results[0][0].transcript;
+        askAI(spoken);
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        voiceBtnText.textContent = 'Start voice call';
+        aiVoiceActionBtn.classList.remove('listening');
+        aiWaveform.classList.remove('active');
+      };
+    }
+
+    if (aiVoiceActionBtn) {
+      aiVoiceActionBtn.onclick = () => {
+        if (!recognition) {
+          alert('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+          return;
+        }
+        if (isListening) {
+          recognition.stop();
+        } else {
+          recognition.start();
+        }
+      };
+    }
+
+  </script>
+
+  <!-- Floating Campus Canteen AI Launcher -->
+  <div class="ai-launcher-btn" id="aiLauncher">
+    <div class="ai-launcher-pulse"></div>
+    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80" alt="AI Avatar" class="ai-mini-thumb">
+    <span>Campus Canteen AI</span>
+  </div>
+
+  <!-- AI Voice/Chat Window -->
+  <div class="ai-window-card" id="aiWindow">
+    <div class="ai-win-head">
+      <div>
+        <h4 style="font-size:15px; font-weight:800; color:#0f172a; margin:0;">Campus Canteen AI</h4>
+        <small id="aiStatusText" style="color:#d9534f; font-size:11px;">Live AI avatar &bull; Online</small>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="ai-tool-btn" id="aiMinBtn">&minus;</button>
+        <button type="button" class="ai-tool-btn" id="aiCloseBtn">&times;</button>
+      </div>
+    </div>
+
+    <div class="ai-avatar-section">
+      <div class="ai-main-avatar">
+        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" alt="AI Agent">
+        <div class="ai-wave-bars" id="aiWaveform">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggle Modes -->
+    <div class="ai-mode-toggles">
+      <button type="button" class="ai-mode-tab" id="aiChatTabBtn"><i class="fa-solid fa-message"></i> Chat</button>
+      <button type="button" class="ai-mode-tab active" id="aiVoiceTabBtn"><i class="fa-solid fa-microphone"></i> Voice</button>
+    </div>
+
+    <!-- Voice Control Panel -->
+    <div class="ai-voice-panel" id="aiVoicePanel">
+      <button type="button" class="ai-voice-call-btn" id="aiVoiceActionBtn">
+        <i class="fa-solid fa-microphone"></i> <span id="voiceBtnText">Start voice call</span>
+      </button>
+    </div>
+
+    <!-- Live Dialog Display -->
+    <div class="ai-dialog-box" id="aiDialogBox">
+      <div class="ai-bubble ai">Namaste! Main BBSBEC Canteen AI hoon. Aap bol kar ya likh kar menu pooch sakte hain.</div>
+    </div>
+
+    <!-- Input Bar -->
+    <div class="ai-input-bar">
+      <input type="text" id="aiInputPrompt" placeholder="Type a question...">
+      <button type="button" id="aiSendPrompt"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+    
+    <div class="ai-card-footer">
+      <span>BBSBEC Smart Cafeteria System</span>
+    </div>
+  </div>
+
+  <style>
+    /* Launcher Badge */
+    .ai-launcher-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      padding: 8px 18px 8px 10px;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.14);
+      cursor: pointer;
+      z-index: 1050;
+      font-weight: 700;
+      font-size: 14px;
+      color: #1e293b;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .ai-launcher-btn:hover {
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 16px 35px rgba(0,0,0,0.2);
+    }
+    .ai-mini-thumb {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #27ae60;
+    }
+    .ai-launcher-pulse {
+      position: absolute;
+      left: 7px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(39, 174, 96, 0.25);
+      animation: pulseRings 2s infinite ease-out;
+      z-index: -1;
+    }
+    @keyframes pulseRings {
+      0% { transform: scale(0.9); opacity: 1; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+
+    /* Modal / Floating Window */
+    .ai-window-card {
+      position: fixed;
+      bottom: 84px;
+      right: 24px;
+      width: 330px;
+      background: #ffffff;
+      border-radius: 26px;
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+      border: 1px solid #f1f5f9;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 1100;
+      animation: aiPop 0.25s ease-out;
+    }
+    @keyframes aiPop {
+      from { transform: scale(0.9) translateY(20px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .ai-win-head {
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .ai-tool-btn {
+      background: #f1f5f9;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .ai-tool-btn:hover { background: #e2e8f0; color: #0f172a; }
+    .ai-avatar-section {
+      padding: 16px 0 10px;
+      display: flex;
+      justify-content: center;
+    }
+    .ai-main-avatar {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: #1e293b;
+      padding: 3px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    .ai-main-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .ai-wave-bars {
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      height: 18px;
+    }
+    .ai-wave-bars span {
+      width: 3px;
+      height: 4px;
+      background: #d9534f;
+      border-radius: 3px;
+      transition: height 0.2s;
+    }
+    .ai-wave-bars.active span {
+      animation: waveBounce 0.8s infinite ease-in-out alternate;
+    }
+    .ai-wave-bars.active span:nth-child(2) { animation-delay: 0.2s; }
+    .ai-wave-bars.active span:nth-child(3) { animation-delay: 0.4s; }
+    .ai-wave-bars.active span:nth-child(4) { animation-delay: 0.1s; }
+    .ai-wave-bars.active span:nth-child(5) { animation-delay: 0.3s; }
+    @keyframes waveBounce {
+      0% { height: 4px; }
+      100% { height: 18px; }
+    }
+    .ai-mode-toggles {
+      display: flex;
+      gap: 8px;
+      padding: 6px 18px 12px;
+    }
+    .ai-mode-tab {
+      flex: 1;
+      padding: 7px;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .ai-mode-tab.active {
+      background: #c0392b;
+      color: #ffffff;
+      border-color: #c0392b;
+    }
+    .ai-voice-panel {
+      padding: 0 18px 12px;
+    }
+    .ai-voice-call-btn {
+      width: 100%;
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 6px 18px rgba(192, 57, 43, 0.35);
+      transition: transform 0.2s;
+    }
+    .ai-voice-call-btn:hover { transform: scale(1.02); }
+    .ai-voice-call-btn.listening {
+      background: #27ae60;
+      box-shadow: 0 6px 18px rgba(39, 174, 96, 0.35);
+    }
+    .ai-dialog-box {
+      height: 110px;
+      overflow-y: auto;
+      padding: 0 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .ai-bubble {
+      font-size: 12px;
+      line-height: 1.4;
+      padding: 8px 12px;
+      border-radius: 12px;
+      max-width: 85%;
+    }
+    .ai-bubble.ai {
+      background: #f1f5f9;
+      color: #1e293b;
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+    }
+    .ai-bubble.user {
+      background: #27ae60;
+      color: #ffffff;
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+    }
+    .ai-input-bar {
+      padding: 10px 18px;
+      display: flex;
+      gap: 8px;
+    }
+    .ai-input-bar input {
+      flex: 1;
+      padding: 8px 14px;
+      border-radius: 20px;
+      border: 1px solid #cbd5e1;
+      font-size: 13px;
+      outline: none;
+    }
+    .ai-input-bar button {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: #c0392b;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ai-card-footer {
+      text-align: center;
+      padding: 6px 0 10px;
+      font-size: 10px;
+      color: #94a3b8;
+    }
+  </style>
+
+</body>
+</html>

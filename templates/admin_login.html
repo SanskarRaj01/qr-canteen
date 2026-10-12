@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - QR Canteen</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-body">
+<div class="login-wrap">
+    <form class="login-card" method="POST" action="{{ url_for('admin_login') }}">
+        <div class="login-icon">&#x1F510;</div>
+        <h1>Admin Login</h1>
+        <p class="sub">QR Canteen control panel</p>
+        {% with messages = get_flashed_messages() %}
+            {% for m in messages %}
+            <div class="alert">{{ m }}</div>
+            {% endfor %}
+        {% endwith %}
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required autofocus autocomplete="username">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+        <button type="submit">Sign in</button>
+    </form>
+</div>
+<script>
+(function () {
+    if (!window.matchMedia('(hover:hover)').matches) return;
+    var card = document.querySelector('.login-card');
+    document.addEventListener('mousemove', function (e) {
+        var x = e.clientX / window.innerWidth - 0.5, y = e.clientY / window.innerHeight - 0.5;
+        card.style.transform = 'rotateY(' + (x * 12) + 'deg) rotateX(' + (-y * 12) + 'deg)';
+    });
+})();
+</script>
+</body>
+</html>
